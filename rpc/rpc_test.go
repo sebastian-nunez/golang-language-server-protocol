@@ -7,7 +7,7 @@ import (
 func TestEncodeMessage(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
+	testCases := []struct {
 		name string
 		msg  any
 		want string
@@ -37,11 +37,53 @@ func TestEncodeMessage(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := EncodeMessage(tt.msg)
-			if got != tt.want {
-				t.Errorf("EncodeMessage got %v, want %v", got, tt.want)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := EncodeMessage(tc.msg)
+			if got != tc.want {
+				t.Errorf("EncodeMessage got %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestDecodeMessage(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name              string
+		msg               []byte
+		wantContent       []byte
+		wantMethod        string
+		wantContentLength int
+	}{
+		{
+			name:              "simple message",
+			msg:               []byte("Content-Length: 17\r\n\r\n{\"Method\":\"post\"}"),
+			wantContent:       []byte("{\"Method\":\"post\"}"),
+			wantMethod:        "post",
+			wantContentLength: 17,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			gotMethod, gotContent, err := DecodeMessage(tc.msg)
+			if err != nil {
+				t.Errorf("DecodeMessage got unexpected error: %v", err)
+			}
+
+			gotContentLength := len(gotContent)
+			if gotContentLength != tc.wantContentLength {
+				t.Errorf("DecodeMessage content length got %v, want %v", gotContentLength, tc.wantContentLength)
+			}
+
+			if gotMethod != tc.wantMethod {
+				t.Errorf("DecodeMessage method got %v, want %v", gotMethod, tc.wantMethod)
+			}
+
+			if string(gotContent) != string(tc.wantContent) {
+				t.Errorf("DecodeMessage content got %v, want %v", string(gotContent), string(tc.wantContent))
 			}
 		})
 	}
