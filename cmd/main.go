@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/sebastian-nunez/golang-language-server-protocol/compiler"
 	"github.com/sebastian-nunez/golang-language-server-protocol/lsp"
 	"github.com/sebastian-nunez/golang-language-server-protocol/rpc"
 	"github.com/sebastian-nunez/golang-language-server-protocol/util"
@@ -17,6 +18,8 @@ func main() {
 	logger := util.NewFileLogger("lsp_logs.txt")
 	logger.Println("Starting the LSP...")
 
+	state := compiler.NewState()
+
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(rpc.SplitMessage)
 	for scanner.Scan() {
@@ -26,17 +29,19 @@ func main() {
 			logger.Printf("Error decoding message: %v", err)
 			continue
 		}
-		handleMessage(logger, method, content)
+		handleMessage(logger, state, method, content)
 	}
 }
 
-func handleMessage(logger *log.Logger, method string, content []byte) {
+func handleMessage(logger *log.Logger, state *compiler.State, method string, content []byte) {
+	logger.Printf("Received message, method=%s", method)
+
 	switch method {
 	case "initialize":
 		var request lsp.InitializeRequest
 		if err := json.Unmarshal(content, &request); err != nil {
 			logger.Printf("Error unmarshalling initialize request: %v", err)
-			break
+			return
 		}
 
 		version := "unknown"
@@ -58,13 +63,14 @@ func handleMessage(logger *log.Logger, method string, content []byte) {
 		var request lsp.DidOpenTextDocumentNotification
 		if err := json.Unmarshal(content, &request); err != nil {
 			logger.Printf("Error unmarshalling text document did open request: %v", err)
-			break
+			return
 		}
 
 		logger.Printf("Opened text document: URI=%v, content=%v",
 			request.Params.TextDocument.URI,
 			request.Params.TextDocument.Text,
 		)
+		state.OpenDocument(request.Params.TextDocument.URI, request.Params.TextDocument.Text)
 	default:
 		logger.Printf("Received message: method=%v, content=%v", method, string(content))
 	}
