@@ -34,8 +34,6 @@ func main() {
 }
 
 func handleMessage(logger *log.Logger, state *compiler.State, method string, content []byte) {
-	logger.Printf("Received message, method=%s", method)
-
 	switch method {
 	case "initialize":
 		var request lsp.InitializeRequest
@@ -58,7 +56,7 @@ func handleMessage(logger *log.Logger, state *compiler.State, method string, con
 		msg := rpc.EncodeMessage(lsp.NewInitializeResponse(request.ID, 1))
 		writer.Write([]byte(msg))
 
-		logger.Printf("Sent initialize response: %v", string(msg))
+		logger.Println("Sent initialize response")
 	case "textDocument/didOpen":
 		var request lsp.DidOpenTextDocumentNotification
 		if err := json.Unmarshal(content, &request); err != nil {
@@ -66,10 +64,7 @@ func handleMessage(logger *log.Logger, state *compiler.State, method string, con
 			return
 		}
 
-		logger.Printf("Opened text document: URI=%v, content=%v",
-			request.Params.TextDocument.URI,
-			request.Params.TextDocument.Text,
-		)
+		logger.Printf("Opened text document: URI=%v", request.Params.TextDocument.URI)
 		err := state.OpenDocument(request.Params.TextDocument.URI, request.Params.TextDocument.Text)
 		if err != nil {
 			logger.Printf("Error opening document: %v", err)
@@ -82,10 +77,7 @@ func handleMessage(logger *log.Logger, state *compiler.State, method string, con
 		}
 
 		for _, change := range request.Params.ContentChanges {
-			logger.Printf("Changed text document: URI=%v, text=%v",
-				request.Params.TextDocument.URI,
-				change.Text,
-			)
+			logger.Printf("Changed text document: URI=%v", request.Params.TextDocument.URI)
 			err := state.UpdateDocument(request.Params.TextDocument.URI, change.Text)
 			if err != nil {
 				logger.Printf("Error updating document: %v", err)
