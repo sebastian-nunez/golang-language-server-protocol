@@ -91,6 +91,8 @@ func TestDecodeMessage(t *testing.T) {
 }
 
 func TestSplitMessage(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		msg         []byte

@@ -15,6 +15,7 @@ type Response struct {
 	// Result and errors will be specified within each of the response types.
 }
 
+// Notification is the structure that all LSP notifications should follow.
 type Notification struct {
 	RPC    string `json:"jsonrpc"`
 	Method string `json:"method"`
