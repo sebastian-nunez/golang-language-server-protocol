@@ -93,42 +93,42 @@ func TestDecodeMessage(t *testing.T) {
 func TestSplitMessage(t *testing.T) {
 	tests := []struct {
 		name        string
-		input       []byte
+		msg         []byte
 		wantAdvance int
 		wantToken   []byte
 		wantErr     bool
 	}{
 		{
 			name:        "Complete message",
-			input:       []byte("Content-Length: 5\r\n\r\nhello"),
-			wantAdvance: 26,
-			wantToken:   []byte("hello"),
+			msg:         []byte("Content-Length: 17\r\n\r\n{\"Method\":\"post\"}"),
+			wantAdvance: 39,
+			wantToken:   []byte("Content-Length: 17\r\n\r\n{\"Method\":\"post\"}"),
 			wantErr:     false,
 		},
 		{
 			name:        "Incomplete message",
-			input:       []byte("Content-Length: 5\r\n\r\nhe"),
+			msg:         []byte("Content-Length: 22\r\n\r\nhe"),
 			wantAdvance: 0,
 			wantToken:   nil,
 			wantErr:     false,
 		},
 		{
 			name:        "Invalid content length",
-			input:       []byte("Content-Length: abc\r\n\r\nhello"),
+			msg:         []byte("Content-Length: abc\r\n\r\nhello"),
 			wantAdvance: 0,
 			wantToken:   nil,
 			wantErr:     true,
 		},
 		{
 			name:        "No separator found",
-			input:       []byte("Content-Length: 5hello"),
+			msg:         []byte("Content-Length: 5hello"),
 			wantAdvance: 0,
 			wantToken:   nil,
 			wantErr:     false,
 		},
 		{
 			name:        "Content length greater than actual content",
-			input:       []byte("Content-Length: 10\r\n\r\nhello"),
+			msg:         []byte("Content-Length: 10\r\n\r\nhello"),
 			wantAdvance: 0,
 			wantToken:   nil,
 			wantErr:     false,
@@ -137,12 +137,12 @@ func TestSplitMessage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			advance, token, err := SplitMessage(tt.input, false)
+			advance, token, err := SplitMessage(tt.msg, false)
 			if advance != tt.wantAdvance {
 				t.Errorf("SplitMessage got advance = %v, want %v", advance, tt.wantAdvance)
 			}
 			if !bytes.Equal(token, tt.wantToken) {
-				t.Errorf("SplitMessage got token = %v, want %v", token, tt.wantToken)
+				t.Errorf("SplitMessage got token = %v, want %v", string(token), string(tt.wantToken))
 			}
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SplitMessage got error = %v, wantErr %v", err, tt.wantErr)

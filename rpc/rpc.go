@@ -39,11 +39,11 @@ func EncodeMessage(msg any) string {
 //
 // As per the LSP specification, the message should be in the following format:
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#contentPart
-func DecodeMessage(msg []byte) (string, []byte, error) {
+func DecodeMessage(msg []byte) (method string, content []byte, err error) {
 	sep := []byte(Separator)
 	header, content, found := bytes.Cut(msg, sep)
 	if !found {
-		return "", nil, errors.New("unable to find separator in message")
+		return "", nil, errors.New("unable to find separator in message: " + string(msg))
 	}
 
 	// Header -> `Content-Length: <number>`
@@ -84,5 +84,5 @@ func SplitMessage(data []byte, _ bool) (advance int, token []byte, err error) {
 	}
 
 	totalLength := len(header) + len(sep) + contentLength
-	return totalLength, content[:contentLength], nil
+	return totalLength, data[:totalLength], nil
 }
