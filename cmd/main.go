@@ -18,11 +18,17 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(rpc.SplitMessage)
 	for scanner.Scan() {
-		msg := scanner.Text()
-		handleMessage(logger, msg)
+		msg := scanner.Bytes()
+		method, content, err := rpc.DecodeMessage(msg)
+		if err != nil {
+			logger.Printf("Error decoding message: %v", err)
+			continue
+		}
+
+		handleMessage(logger, method, content)
 	}
 }
 
-func handleMessage(logger *log.Logger, msg any) {
-	logger.Printf("Received message: %v", msg)
+func handleMessage(logger *log.Logger, method string, content []byte) {
+	logger.Printf("Received message: method=%v, content=%v", method, string(content))
 }
