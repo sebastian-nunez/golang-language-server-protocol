@@ -27,8 +27,6 @@ func main() {
 			continue
 		}
 
-		handleMessage(logger, method, content)
-
 		switch method {
 		case "initialize":
 			var request lsp.InitializeRequest
@@ -48,10 +46,23 @@ func main() {
 
 			// TODO(sebastian-nunez): refactor to just use the writer directly
 			writer := os.Stdout
-			msg := rpc.EncodeMessage(lsp.NewInitializeResponse(request.ID))
+			msg := rpc.EncodeMessage(lsp.NewInitializeResponse(request.ID, 1))
 			writer.Write([]byte(msg))
 
 			logger.Printf("Sent initialize response: %v", string(msg))
+		case "textDocument/didOpen":
+			var request lsp.DidOpenTextDocumentNotification
+			if err := json.Unmarshal(content, &request); err != nil {
+				logger.Printf("Error unmarshalling text document did open request: %v", err)
+				continue
+			}
+
+			logger.Printf("Opened text document: URI=%v, content=%v",
+				request.Params.TextDocument.URI,
+				request.Params.TextDocument.Text,
+			)
+		default:
+			handleMessage(logger, method, content)
 		}
 	}
 }

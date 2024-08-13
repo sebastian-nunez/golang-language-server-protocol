@@ -1,6 +1,6 @@
 package lsp
 
-func NewInitializeResponse(id int) InitializeResponse {
+func NewInitializeResponse(id int, textDocumentSync TextDocumentSyncKind) InitializeResponse {
 	version := "0.0.0-alpha.0"
 	return InitializeResponse{
 		Response: Response{
@@ -8,7 +8,9 @@ func NewInitializeResponse(id int) InitializeResponse {
 			ID:  &id,
 		},
 		Result: InitializeResult{
-			Capabilities: ServerCapabilities{},
+			Capabilities: ServerCapabilities{
+				TextDocumentSync: &textDocumentSync,
+			},
 			ServerInfo: &ServerInfo{
 				Name:    "golang-lsp",
 				Version: &version,
@@ -33,8 +35,15 @@ type InitializeResult struct {
 }
 
 type ServerCapabilities struct {
+	TextDocumentSync *TextDocumentSyncKind `json:"textDocumentSync,omitempty"`
 	// Yea, not implementing all of this...
 }
+
+// TextDocumentSyncKind represents the type of text document sync. Types are:
+// 0: None
+// 1: Full
+// 2: Incremental
+type TextDocumentSyncKind int
 
 type ServerInfo struct {
 	Name    string  `json:"name"`
