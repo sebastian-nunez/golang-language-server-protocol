@@ -1,6 +1,10 @@
 package compiler
 
-import "github.com/sebastian-nunez/golang-language-server-protocol/lsp"
+import (
+	"errors"
+
+	"github.com/sebastian-nunez/golang-language-server-protocol/lsp"
+)
 
 type State struct {
 	// Documents is a map of document URIs (file names) to their text contents.
@@ -13,6 +17,20 @@ func NewState() *State {
 	}
 }
 
-func (s *State) OpenDocument(uri lsp.DocumentURI, text string) {
+func (s *State) OpenDocument(uri lsp.DocumentURI, text string) error {
+	_, ok := s.Documents[uri]
+	if ok {
+		return errors.New("document was already opened")
+	}
 	s.Documents[uri] = text
+	return nil
+}
+
+func (s *State) UpdateDocument(uri lsp.DocumentURI, text string) error {
+	_, ok := s.Documents[uri]
+	if !ok {
+		return errors.New("document was not opened")
+	}
+	s.Documents[uri] = text
+	return nil
 }

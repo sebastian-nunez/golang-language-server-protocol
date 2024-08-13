@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/sebastian-nunez/golang-language-server-protocol/lsp"
@@ -44,24 +45,27 @@ func TestOpenDocument(t *testing.T) {
 		newText     string
 		wantLength  int
 		wantText    string
+		wantErr     error
 	}{
 		{
 			name:        "new document",
-			initialURI:  lsp.DocumentURI(""),
+			initialURI:  "",
 			initialText: "",
 			newURI:      lsp.DocumentURI("file:///example.go"),
 			newText:     "package main\n\nfunc main() {}\n",
 			wantLength:  1,
 			wantText:    "package main\n\nfunc main() {}\n",
+			wantErr:     nil,
 		},
 		{
-			name:        "overwrite document",
+			name:        "document already exists",
 			initialURI:  lsp.DocumentURI("file:///example.go"),
 			initialText: "package main\n\nfunc main() {}\n",
 			newURI:      lsp.DocumentURI("file:///example.go"),
 			newText:     "package main\n\nfunc main() { println(\"Hello, World!\") }\n",
 			wantLength:  1,
-			wantText:    "package main\n\nfunc main() { println(\"Hello, World!\") }\n",
+			wantText:    "package main\n\nfunc main() {}\n", // No change expected
+			wantErr:     errors.New("document was already opened"),
 		},
 	}
 
@@ -69,9 +73,13 @@ func TestOpenDocument(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			state := NewState()
 			if tc.initialURI != "" {
-				state.OpenDocument(tc.initialURI, tc.initialText)
+				state.Documents[tc.initialURI] = tc.initialText
 			}
-			state.OpenDocument(tc.newURI, tc.newText)
+			err := state.OpenDocument(tc.newURI, tc.newText)
+
+			if err != nil && err.Error() != tc.wantErr.Error() {
+				t.Errorf("OpenDocument got error = %v, want %v", err, tc.wantErr)
+			}
 
 			if gotLength := len(state.Documents); gotLength != tc.wantLength {
 				t.Errorf("OpenDocument got length = %v, want %v", gotLength, tc.wantLength)
@@ -79,6 +87,56 @@ func TestOpenDocument(t *testing.T) {
 
 			if gotText := state.Documents[tc.newURI]; gotText != tc.wantText {
 				t.Errorf("OpenDocument got text = %v, want %v", gotText, tc.wantText)
+			}
+		})
+	}
+}
+
+func TestUpdateDocument(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name        string
+		initialURI  lsp.DocumentURI
+		initialText string
+		updateURI   lsp.DocumentURI
+		updateText  string
+		wantText    string
+		wantErr     error
+	}{
+		{
+			name:        "update existing document",
+			initialURI:  lsp.DocumentURI("file:///example.go"),
+			initialText: "package main\n\nfunc main() {}\n",
+			updateURI:   lsp.DocumentURI("file:///example.go"),
+			updateText:  "package main\n\nfunc main() { println(\"Hello, World!\") }\n",
+			wantText:    "package main\n\nfunc main() { println(\"Hello, World!\") }\n",
+			wantErr:     nil,
+		},
+		{
+			name:       "update non-existing document",
+			initialURI: "",
+			updateURI:  lsp.DocumentURI("file:///nonexistent.go"),
+			updateText: "package main\n\nfunc main() {}\n",
+			wantText:   "",
+			wantErr:    errors.New("document was not opened"),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			state := NewState()
+			if tc.initialURI != "" {
+				state.Documents[tc.initialURI] = tc.initialText
+			}
+			err := state.UpdateDocument(tc.updateURI, tc.updateText)
+
+			if err != nil && err.Error() != tc.wantErr.Error() {
+				t.Errorf("UpdateDocument got error = %v, want %v", err, tc.wantErr)
+			}
+
+			if gotText := state.Documents[tc.updateURI]; gotText != tc.wantText {
+				t.Errorf("UpdateDocument got text = %v, want %v", gotText, tc.wantText)
 			}
 		})
 	}
