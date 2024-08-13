@@ -8,6 +8,13 @@ import (
 	"strconv"
 )
 
+const (
+	// ContentLength is the header that specifies the length of the content.
+	ContentLength = "Content-Length: "
+	// Separator is the separator between the header and the content for an RPC message.
+	Separator = "\r\n\r\n"
+)
+
 // BaseMessage has the structure that all RPC messages should follow.
 type BaseMessage struct {
 	Method string "json:\"method\""
@@ -25,7 +32,7 @@ func EncodeMessage(msg any) string {
 		panic(err)
 	}
 
-	return fmt.Sprintf("Content-Length: %d\r\n\r\n%s", len(content), content)
+	return fmt.Sprintf("%s%d\r\n\r\n%s", ContentLength, len(content), content)
 }
 
 // DecodeMessage decodes the message from the network into a format that can be used by the application.
@@ -33,14 +40,14 @@ func EncodeMessage(msg any) string {
 // As per the LSP specification, the message should be in the following format:
 // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#contentPart
 func DecodeMessage(msg []byte) (string, []byte, error) {
-	sep := []byte{'\r', '\n', '\r', '\n'}
+	sep := []byte(Separator)
 	header, content, found := bytes.Cut(msg, sep)
 	if !found {
 		return "", nil, errors.New("unable to find separator in message")
 	}
 
 	// Header -> `Content-Length: <number>`
-	contentLengthBytes := bytes.TrimPrefix(header, []byte("Content-Length: "))
+	contentLengthBytes := bytes.TrimPrefix(header, []byte(ContentLength))
 	contentLength, err := strconv.Atoi(string(contentLengthBytes))
 	if err != nil {
 		return "", nil, fmt.Errorf("unable to parse content length from header '%v': %w", header, err)
@@ -53,4 +60,29 @@ func DecodeMessage(msg []byte) (string, []byte, error) {
 	}
 
 	return baseMessage.Method, actualContent, nil
+}
+
+// SplitMessage splits the message to be read by a `bufio.Scanner`.
+func SplitMessage(data []byte, _ bool) (advance int, token []byte, err error) {
+	sep := []byte(Separator)
+	header, content, found := bytes.Cut(data, sep)
+	if !found {
+		// We are still waiting for more data to come in.
+		return 0, nil, nil
+	}
+
+	// Header -> `Content-Length: <number>`
+	contentLengthBytes := bytes.TrimPrefix(header, []byte(ContentLength))
+	contentLength, err := strconv.Atoi(string(contentLengthBytes))
+	if err != nil {
+		return 0, nil, fmt.Errorf("unable to parse content length from header '%v': %w", header, err)
+	}
+
+	// Data has not been fully received yet.
+	if len(content) < contentLength {
+		return 0, nil, nil
+	}
+
+	totalLength := len(header) + len(sep) + contentLength
+	return totalLength, content[:contentLength], nil
 }

@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -84,6 +85,67 @@ func TestDecodeMessage(t *testing.T) {
 
 			if string(gotContent) != string(tc.wantContent) {
 				t.Errorf("DecodeMessage content got %v, want %v", string(gotContent), string(tc.wantContent))
+			}
+		})
+	}
+}
+
+func TestSplitMessage(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       []byte
+		wantAdvance int
+		wantToken   []byte
+		wantErr     bool
+	}{
+		{
+			name:        "Complete message",
+			input:       []byte("Content-Length: 5\r\n\r\nhello"),
+			wantAdvance: 26,
+			wantToken:   []byte("hello"),
+			wantErr:     false,
+		},
+		{
+			name:        "Incomplete message",
+			input:       []byte("Content-Length: 5\r\n\r\nhe"),
+			wantAdvance: 0,
+			wantToken:   nil,
+			wantErr:     false,
+		},
+		{
+			name:        "Invalid content length",
+			input:       []byte("Content-Length: abc\r\n\r\nhello"),
+			wantAdvance: 0,
+			wantToken:   nil,
+			wantErr:     true,
+		},
+		{
+			name:        "No separator found",
+			input:       []byte("Content-Length: 5hello"),
+			wantAdvance: 0,
+			wantToken:   nil,
+			wantErr:     false,
+		},
+		{
+			name:        "Content length greater than actual content",
+			input:       []byte("Content-Length: 10\r\n\r\nhello"),
+			wantAdvance: 0,
+			wantToken:   nil,
+			wantErr:     false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			advance, token, err := SplitMessage(tt.input, false)
+			if advance != tt.wantAdvance {
+				t.Errorf("SplitMessage got advance = %v, want %v", advance, tt.wantAdvance)
+			}
+			if !bytes.Equal(token, tt.wantToken) {
+				t.Errorf("SplitMessage got token = %v, want %v", token, tt.wantToken)
+			}
+			if (err != nil) != tt.wantErr {
+				t.Errorf("SplitMessage got error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
