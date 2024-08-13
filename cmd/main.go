@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"log"
 	"os"
 
+	"github.com/sebastian-nunez/golang-language-server-protocol/lsp"
 	"github.com/sebastian-nunez/golang-language-server-protocol/rpc"
 	"github.com/sebastian-nunez/golang-language-server-protocol/util"
 )
@@ -23,6 +25,24 @@ func main() {
 		if err != nil {
 			logger.Printf("Error decoding message: %v", err)
 			continue
+		}
+
+		switch method {
+		case "initialize":
+			var request lsp.InitializeRequest
+			if err := json.Unmarshal(content, &request); err != nil {
+				logger.Printf("Error unmarshalling initialize request: %v", err)
+				continue
+			}
+
+			version := "unknown"
+			if request.Params.ClientInfo != nil && *request.Params.ClientInfo.Version != "" {
+				version = *request.Params.ClientInfo.Version
+			}
+			logger.Printf("Connected to client: %s (version=%s)",
+				request.Params.ClientInfo.Name,
+				version,
+			)
 		}
 
 		handleMessage(logger, method, content)
