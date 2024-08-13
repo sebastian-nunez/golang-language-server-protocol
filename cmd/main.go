@@ -62,7 +62,7 @@ func handleMessage(logger *log.Logger, state *compiler.State, method string, con
 	case "textDocument/didOpen":
 		var request lsp.DidOpenTextDocumentNotification
 		if err := json.Unmarshal(content, &request); err != nil {
-			logger.Printf("Error unmarshalling text document did open request: %v", err)
+			logger.Printf("Error unmarshalling textDocument/didOpen: %v", err)
 			return
 		}
 
@@ -70,7 +70,27 @@ func handleMessage(logger *log.Logger, state *compiler.State, method string, con
 			request.Params.TextDocument.URI,
 			request.Params.TextDocument.Text,
 		)
-		state.OpenDocument(request.Params.TextDocument.URI, request.Params.TextDocument.Text)
+		err := state.OpenDocument(request.Params.TextDocument.URI, request.Params.TextDocument.Text)
+		if err != nil {
+			logger.Printf("Error opening document: %v", err)
+		}
+	case "textDocument/didChange":
+		var request lsp.TextDocumentDidChangeNotification
+		if err := json.Unmarshal(content, &request); err != nil {
+			logger.Printf("Error unmarshalling textDocument/didChange: %v", err)
+			return
+		}
+
+		for _, change := range request.Params.ContentChanges {
+			logger.Printf("Changed text document: URI=%v, text=%v",
+				request.Params.TextDocument.URI,
+				change.Text,
+			)
+			err := state.UpdateDocument(request.Params.TextDocument.URI, change.Text)
+			if err != nil {
+				logger.Printf("Error updating document: %v", err)
+			}
+		}
 	default:
 		logger.Printf("Received message: method=%v, content=%v", method, string(content))
 	}

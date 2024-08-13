@@ -8,3 +8,12 @@ type TextDocumentItem struct {
 }
 
 type DocumentURI string
+
+type TextDocumentIdentifier struct {
+	URI DocumentURI `json:"uri"`
+}
+
+type VersionTextDocumentIdentifier struct {
+	TextDocumentIdentifier
+	Version int `json:"version"`
+}
