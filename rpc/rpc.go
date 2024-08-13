@@ -32,7 +32,7 @@ func EncodeMessage(msg any) string {
 		panic(err)
 	}
 
-	return fmt.Sprintf("%s%d\r\n\r\n%s", ContentLength, len(content), content)
+	return fmt.Sprintf("%s%d%v%s", ContentLength, len(content), Separator, content)
 }
 
 // DecodeMessage decodes the message from the network into a format that can be used by the application.

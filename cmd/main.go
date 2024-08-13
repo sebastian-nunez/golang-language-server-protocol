@@ -27,6 +27,8 @@ func main() {
 			continue
 		}
 
+		handleMessage(logger, method, content)
+
 		switch method {
 		case "initialize":
 			var request lsp.InitializeRequest
@@ -43,9 +45,14 @@ func main() {
 				request.Params.ClientInfo.Name,
 				version,
 			)
-		}
 
-		handleMessage(logger, method, content)
+			// TODO(sebastian-nunez): refactor to just use the writer directly
+			writer := os.Stdout
+			msg := rpc.EncodeMessage(lsp.NewInitializeResponse(request.ID))
+			writer.Write([]byte(msg))
+
+			logger.Printf("Sent initialize response: %v", string(msg))
+		}
 	}
 }
 
