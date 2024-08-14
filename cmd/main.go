@@ -53,7 +53,7 @@ func handleMessage(logger *log.Logger, state *compiler.State, method string, con
 
 		// TODO(sebastian-nunez): refactor to just use the writer directly
 		writer := os.Stdout
-		msg := rpc.EncodeMessage(lsp.NewInitializeResponse(request.ID, 1))
+		msg := rpc.EncodeMessage(lsp.NewInitializeResponse(request.ID))
 		writer.Write([]byte(msg))
 
 		logger.Println("Sent initialize response")

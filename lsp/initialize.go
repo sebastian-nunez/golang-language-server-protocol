@@ -1,7 +1,10 @@
 package lsp
 
-func NewInitializeResponse(id int, textDocumentSync TextDocumentSyncKind) InitializeResponse {
+func NewInitializeResponse(id int) InitializeResponse {
 	version := "0.0.0-alpha.0"
+	textDocumentSync := TextDocumentSyncKind(1)
+	hoverProvider := true
+
 	return InitializeResponse{
 		Response: Response{
 			RPC: "2.0",
@@ -10,6 +13,7 @@ func NewInitializeResponse(id int, textDocumentSync TextDocumentSyncKind) Initia
 		Result: InitializeResult{
 			Capabilities: ServerCapabilities{
 				TextDocumentSync: &textDocumentSync,
+				HoverProvider:    &hoverProvider,
 			},
 			ServerInfo: &ServerInfo{
 				Name:    "golang-lsp",
@@ -36,6 +40,7 @@ type InitializeResult struct {
 
 type ServerCapabilities struct {
 	TextDocumentSync *TextDocumentSyncKind `json:"textDocumentSync,omitempty"`
+	HoverProvider    *bool                 `json:"hoverProvider,omitempty"`
 	// Yea, not implementing all of this...
 }
 
