@@ -35,6 +35,7 @@ func main() {
 	}
 }
 
+// handleMessage handles the incoming message from the client and sends the appropriate response (if needed).
 func handleMessage(logger *log.Logger, state *compiler.State, writer io.Writer, method string, content []byte) {
 	switch method {
 	case "initialize":
@@ -102,6 +103,18 @@ func handleMessage(logger *log.Logger, state *compiler.State, writer io.Writer, 
 
 		writeResponse(writer, response)
 		logger.Println("Sent hover response")
+	case "textDocument/definition":
+		var request lsp.TextDocumentDefinitionRequest
+		if err := json.Unmarshal(content, &request); err != nil {
+			logger.Printf("Error unmarshalling textDocument/definition: %v", err)
+			return
+		}
+
+		logger.Printf("Definition of text document: URI=%v, character=%v, line=%v",
+			request.Params.TextDocument.URI,
+			request.Params.Position.Character,
+			request.Params.Position.Line,
+		)
 	default:
 		logger.Printf("Received message: method=%v, content=%v", method, string(content))
 	}

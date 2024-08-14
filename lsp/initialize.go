@@ -4,6 +4,7 @@ func NewInitializeResponse(id int) InitializeResponse {
 	version := "0.0.0-alpha.0"
 	textDocumentSync := TextDocumentSyncKind(1)
 	hoverProvider := true
+	definitionProvider := true
 
 	return InitializeResponse{
 		Response: Response{
@@ -12,8 +13,9 @@ func NewInitializeResponse(id int) InitializeResponse {
 		},
 		Result: InitializeResult{
 			Capabilities: ServerCapabilities{
-				TextDocumentSync: &textDocumentSync,
-				HoverProvider:    &hoverProvider,
+				TextDocumentSync:   &textDocumentSync,
+				HoverProvider:      &hoverProvider,
+				DefinitionProvider: &definitionProvider,
 			},
 			ServerInfo: &ServerInfo{
 				Name:    "golang-lsp",
@@ -39,8 +41,9 @@ type InitializeResult struct {
 }
 
 type ServerCapabilities struct {
-	TextDocumentSync *TextDocumentSyncKind `json:"textDocumentSync,omitempty"`
-	HoverProvider    *bool                 `json:"hoverProvider,omitempty"`
+	TextDocumentSync   *TextDocumentSyncKind `json:"textDocumentSync,omitempty"`
+	HoverProvider      *bool                 `json:"hoverProvider,omitempty"`
+	DefinitionProvider *bool                 `json:"definitionProvider,omitempty"`
 	// Yea, not implementing all of this...
 }
 
