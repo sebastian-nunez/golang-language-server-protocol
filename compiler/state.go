@@ -52,3 +52,20 @@ func (s *State) Hover(uri lsp.DocumentURI, id int, position lsp.Position) (*lsp.
 	contents := lsp.MarkedString(fmt.Sprintf("file=%s, characters=%d", uri, len(doc)))
 	return lsp.NewTextDocumentHoverResponse(id, contents), nil
 }
+
+func (s *State) Definition(uri lsp.DocumentURI, id int, position lsp.Position) (*lsp.TextDocumentDefinitionResponse, error) {
+	_, ok := s.documents[uri]
+	if !ok {
+		return nil, ErrDocumentNotFound
+	}
+
+	// This is mocked behavior: the "definition" is the line above the word.
+	// In a real implementation, you would want to return the actual hover information
+	// for the given position in the document.
+	contents := lsp.MarkedString("definition")
+	r := lsp.Range{
+		Start: lsp.Position{Line: position.Line - 1, Character: 0},
+		End:   lsp.Position{Line: position.Line - 1, Character: 0},
+	}
+	return lsp.NewTextDocumentDefinitionResponse(id, uri, r, contents), nil
+}

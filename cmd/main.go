@@ -115,6 +115,14 @@ func handleMessage(logger *log.Logger, state *compiler.State, writer io.Writer, 
 			request.Params.Position.Character,
 			request.Params.Position.Line,
 		)
+
+		response, err := state.Definition(request.Params.TextDocument.URI, request.ID, request.Params.Position)
+		if err != nil {
+			logger.Printf("Error getting definition response: %v", err)
+		}
+
+		writeResponse(writer, response)
+		logger.Println("Sent definition response")
 	default:
 		logger.Printf("Received message: method=%v, content=%v", method, string(content))
 	}

@@ -84,5 +84,5 @@ type WorkspaceFolder struct {
 	Name string `json:"name"`
 }
 
-type DocumentUri string
+type DocumentURI string
 type TraceValue string

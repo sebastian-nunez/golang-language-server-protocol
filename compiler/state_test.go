@@ -189,3 +189,59 @@ func TestHover(t *testing.T) {
 		})
 	}
 }
+
+func TestDefinition(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name      string
+		documents map[lsp.DocumentURI]string
+		uri       lsp.DocumentURI
+		id        int
+		position  lsp.Position
+		wantRange lsp.Range
+		wantURI   lsp.DocumentURI
+		wantErr   error
+	}{
+		{
+			name:      "existing document",
+			documents: map[lsp.DocumentURI]string{"file:///example.go": "package main\n\nfunc main() {}\n"},
+			uri:       lsp.DocumentURI("file:///example.go"),
+			id:        1,
+			position:  lsp.Position{Line: 2, Character: 10},
+			wantRange: lsp.Range{Start: lsp.Position{Line: 1, Character: 0}, End: lsp.Position{Line: 1, Character: 0}},
+			wantURI:   lsp.DocumentURI("file:///example.go"),
+			wantErr:   nil,
+		},
+		{
+			name:      "non-existing document",
+			documents: map[lsp.DocumentURI]string{},
+			uri:       lsp.DocumentURI("file:///nonexistent.go"),
+			id:        1,
+			position:  lsp.Position{Line: 2, Character: 10},
+			wantRange: lsp.Range{},
+			wantURI:   lsp.DocumentURI("file:///nonexistent.go"),
+			wantErr:   ErrDocumentNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			state := &State{documents: tc.documents}
+			got, err := state.Definition(tc.uri, tc.id, tc.position)
+
+			if err != nil && err.Error() != tc.wantErr.Error() {
+				t.Errorf("Definition got error = %v, want %v", err, tc.wantErr)
+			}
+
+			if got != nil {
+				if *got.Result.Range != tc.wantRange {
+					t.Errorf("Definition got range = %v, want %v", *got.Result.Range, tc.wantRange)
+				}
+				if got.Result.URI != tc.wantURI {
+					t.Errorf("Definition got uri = %v, want %v", got.Result.URI, tc.wantURI)
+				}
+			}
+		})
+	}
+}
