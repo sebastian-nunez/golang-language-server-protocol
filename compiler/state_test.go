@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/sebastian-nunez/golang-language-server-protocol/lsp"
@@ -420,6 +421,48 @@ func TestLineRange(t *testing.T) {
 			result := LineRange(tc.line, tc.start, tc.end)
 			if result != tc.expect {
 				t.Errorf("want %+v, got %+v", tc.expect, result)
+			}
+		})
+	}
+}
+
+func TestTextDocumentCompletion(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		id   int
+		uri  lsp.DocumentURI
+		want *lsp.TextDocumentCompletionResponse
+	}{
+		{
+			name: "Basic Completion",
+			id:   1,
+			uri:  "file://testfile.go",
+			want: &lsp.TextDocumentCompletionResponse{
+				Response: lsp.Response{
+					RPC: "2.0",
+					ID:  1,
+				},
+				Result: []lsp.CompletionItem{
+					{
+						Label:         "Custom completion",
+						Detail:        "Some super great details.",
+						Documentation: "This is a documentation tooltip. In a real app, this would be useful information.",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			s := &State{}
+
+			got := s.TextDocumentCompletion(tt.id, tt.uri)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TextDocumentCompletion got = %v, want %v", got, tt.want)
 			}
 		})
 	}

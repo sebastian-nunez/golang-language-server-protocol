@@ -6,6 +6,7 @@ func NewInitializeResponse(id int) InitializeResponse {
 	hoverProvider := true
 	definitionProvider := true
 	codeActionProvider := true
+	completionProvider := map[string]any{}
 
 	return InitializeResponse{
 		Response: Response{
@@ -18,6 +19,7 @@ func NewInitializeResponse(id int) InitializeResponse {
 				HoverProvider:      &hoverProvider,
 				DefinitionProvider: &definitionProvider,
 				CodeActionProvider: &codeActionProvider,
+				CompletionProvider: &completionProvider,
 			},
 			ServerInfo: &ServerInfo{
 				Name:    "golang-lsp",
@@ -47,6 +49,7 @@ type ServerCapabilities struct {
 	HoverProvider      *bool                 `json:"hoverProvider,omitempty"`
 	DefinitionProvider *bool                 `json:"definitionProvider,omitempty"`
 	CodeActionProvider *bool                 `json:"codeActionProvider,omitempty"`
+	CompletionProvider *map[string]any       `json:"completionProvider,omitempty"`
 	// Yea, not implementing all of this...
 }
 
@@ -89,6 +92,7 @@ type WorkspaceFolder struct {
 
 type DocumentURI string
 type TraceValue string
+type MarkedString string
 
 type WorkspaceEdit struct {
 	Changes map[string][]TextEdit `json:"changes"`

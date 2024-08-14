@@ -138,6 +138,20 @@ func handleMessage(logger *log.Logger, state *compiler.State, writer io.Writer, 
 
 		writeResponse(writer, response)
 		logger.Println("Sent codeAction response")
+	case "textDocument/completion":
+		var request lsp.TextDocumentCompletionRequest
+		if err := json.Unmarshal(content, &request); err != nil {
+			logger.Printf("Error unmarshalling textDocument/completion: %v", err)
+			return
+		}
+
+		response, err := state.TextDocumentCompletion(request.ID, request.Params.TextDocument.URI)
+		if err != nil {
+			logger.Printf("Error getting completion response: %v", err)
+		}
+
+		writeResponse(writer, response)
+		logger.Println("Sent completion response")
 	default:
 		logger.Printf("Received message: method=%v, content=%v", method, string(content))
 	}

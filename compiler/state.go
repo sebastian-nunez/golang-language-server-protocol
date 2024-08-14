@@ -132,3 +132,23 @@ func LineRange(line, start, end int) lsp.Range {
 		},
 	}
 }
+
+func (s *State) TextDocumentCompletion(id int, uri lsp.DocumentURI) *lsp.TextDocumentCompletionResponse {
+	// In a real app, we would run static analysis.
+	items := []lsp.CompletionItem{
+		{
+			Label:         "Custom completion",
+			Detail:        "Some super great details.",
+			Documentation: "This is a documentation tooltip. In a real app, this would be useful information.",
+		},
+	}
+
+	response := &lsp.TextDocumentCompletionResponse{
+		Response: lsp.Response{
+			RPC: "2.0",
+			ID:  id,
+		},
+		Result: items,
+	}
+	return response
+}

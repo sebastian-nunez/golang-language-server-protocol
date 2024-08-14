@@ -12,10 +12,10 @@ Manages the internal state (open, update, and retrieve information about documen
 
 Supported functions:
 
-- [x] Hover action (press `shift + k` on Neovim)
-- [x] Goto definition (press `g -> d` on Neovim)
-- [x] Code actions (press `SPACE -> c -> a` on Neovim, must be over "VS Code" text)
-- [ ] Autocompletion
+- [x] Hover action (press `shift + k` in Neovim)
+- [x] Goto definition (press `g -> d` in Neovim)
+- [x] Code actions (press `SPACE -> c -> a` in Neovim, must be over "VS Code" text)
+- [x] Autocompletion (begin typing `Custom completion` in Neovim `insert mode (i)`)
 - [ ] Diagnostics
 
 _This is just a proof of concept, a lot of the functionality is limited and NOT respresentative of a full-fledged LSP._

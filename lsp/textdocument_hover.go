@@ -30,5 +30,3 @@ type HoverResult struct {
 	Contents MarkedString `json:"contents"`
 	Range    *Range       `json:"range,omitempty"`
 }
-
-type MarkedString string
