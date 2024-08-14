@@ -1,5 +1,17 @@
 package lsp
 
+func NewTextDocumentHoverResponse(id int, contents MarkedString) *TextDocumentHoverResponse {
+	return &TextDocumentHoverResponse{
+		Response: Response{
+			RPC: "2.0",
+			ID:  &id,
+		},
+		Result: &HoverResult{
+			Contents: contents,
+		},
+	}
+}
+
 type TextDocumentHoverRequest struct {
 	Request
 	Params HoverParams `json:"params"`

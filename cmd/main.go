@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"io"
 	"log"
 	"os"
 
@@ -19,6 +20,7 @@ func main() {
 	logger.Println("Starting the LSP...")
 
 	state := compiler.NewState()
+	writer := os.Stdout
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(rpc.SplitMessage)
@@ -29,11 +31,11 @@ func main() {
 			logger.Printf("Error decoding message: %v", err)
 			continue
 		}
-		handleMessage(logger, state, method, content)
+		handleMessage(logger, state, writer, method, content)
 	}
 }
 
-func handleMessage(logger *log.Logger, state *compiler.State, method string, content []byte) {
+func handleMessage(logger *log.Logger, state *compiler.State, writer io.Writer, method string, content []byte) {
 	switch method {
 	case "initialize":
 		var request lsp.InitializeRequest
@@ -51,11 +53,8 @@ func handleMessage(logger *log.Logger, state *compiler.State, method string, con
 			version,
 		)
 
-		// TODO(sebastian-nunez): refactor to just use the writer directly
-		writer := os.Stdout
-		msg := rpc.EncodeMessage(lsp.NewInitializeResponse(request.ID))
-		writer.Write([]byte(msg))
-
+		response := lsp.NewInitializeResponse(request.ID)
+		writeResponse(writer, response)
 		logger.Println("Sent initialize response")
 	case "textDocument/didOpen":
 		var request lsp.DidOpenTextDocumentNotification
@@ -90,14 +89,22 @@ func handleMessage(logger *log.Logger, state *compiler.State, method string, con
 			return
 		}
 
-		logger.Printf("Hovering over text document: URI=%v, character=%v, line=%v",
+		logger.Printf("Hovered over text document: URI=%v, character=%v, line=%v",
 			request.Params.TextDocument.URI,
 			request.Params.Position.Character,
 			request.Params.Position.Line,
 		)
 
-		// TODO(sebastian-nunez): add hover response
+		// TODO(sebastian-nunez): Implement hover response logic
+		response := lsp.NewTextDocumentHoverResponse(request.ID, "Hover response")
+		writeResponse(writer, response)
+		logger.Println("Sent hover response")
 	default:
 		logger.Printf("Received message: method=%v, content=%v", method, string(content))
 	}
+}
+
+func writeResponse(writer io.Writer, msg any) {
+	encodedMsg := rpc.EncodeMessage(msg)
+	writer.Write([]byte(encodedMsg))
 }
