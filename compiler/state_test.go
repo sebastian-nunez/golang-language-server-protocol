@@ -141,3 +141,51 @@ func TestUpdateDocument(t *testing.T) {
 		})
 	}
 }
+
+func TestHover(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name        string
+		documents   map[lsp.DocumentURI]string
+		uri         lsp.DocumentURI
+		id          int
+		position    lsp.Position
+		wantContent lsp.MarkedString
+		wantErr     error
+	}{
+		{
+			name:        "existing document",
+			documents:   map[lsp.DocumentURI]string{"file:///example.go": "package main\n\nfunc main() {}\n"},
+			uri:         lsp.DocumentURI("file:///example.go"),
+			id:          1,
+			position:    lsp.Position{Line: 1, Character: 5},
+			wantContent: lsp.MarkedString("file=file:///example.go, characters=29"),
+			wantErr:     nil,
+		},
+		{
+			name:        "non-existing document",
+			documents:   map[lsp.DocumentURI]string{},
+			uri:         lsp.DocumentURI("file:///nonexistent.go"),
+			id:          2,
+			position:    lsp.Position{Line: 1, Character: 5},
+			wantContent: "",
+			wantErr:     ErrDocumentNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			state := &State{documents: tc.documents}
+			got, err := state.Hover(tc.uri, tc.id, tc.position)
+
+			if err != nil && err.Error() != tc.wantErr.Error() {
+				t.Errorf("Hover got error = %v, want = %v", err, tc.wantErr)
+			}
+
+			if got != nil && got.Result.Contents != tc.wantContent {
+				t.Errorf("Hover got content = %v, want = %v", got.Result.Contents, tc.wantContent)
+			}
+		})
+	}
+}
