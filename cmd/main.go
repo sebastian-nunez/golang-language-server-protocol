@@ -83,6 +83,20 @@ func handleMessage(logger *log.Logger, state *compiler.State, method string, con
 				logger.Printf("Error updating document: %v", err)
 			}
 		}
+	case "textDocument/hover":
+		var request lsp.TextDocumentHoverRequest
+		if err := json.Unmarshal(content, &request); err != nil {
+			logger.Printf("Error unmarshalling textDocument/hover: %v", err)
+			return
+		}
+
+		logger.Printf("Hovering over text document: URI=%v, character=%v, line=%v",
+			request.Params.TextDocument.URI,
+			request.Params.Position.Character,
+			request.Params.Position.Line,
+		)
+
+		// TODO(sebastian-nunez): add hover response
 	default:
 		logger.Printf("Received message: method=%v, content=%v", method, string(content))
 	}
