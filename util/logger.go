@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 )
 
+const logsDir = "logs"
+
 // GetLogger returns a logger that writes to the specified file. Logs are written to
 // to the current working directory inside a `logs` folder.
 func NewFileLogger(filename string) *log.Logger {
@@ -14,7 +16,7 @@ func NewFileLogger(filename string) *log.Logger {
 		panic("unable to get current working directory: " + err.Error())
 	}
 
-	logDir := filepath.Join(cwd, "logs")
+	logDir := filepath.Join(cwd, logsDir)
 	if err := os.MkdirAll(logDir, 0755); err != nil {
 		panic("unable to create directory for log file: " + err.Error())
 	}
