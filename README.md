@@ -1,6 +1,35 @@
 # Golang LSP
 
-A [Language Server Protocol (LSP)](https://microsoft.github.io/language-server-protocol/overviews/lsp/overview/) written in [Go](https://go.dev/).
+A prototype [Language Server Protocol (LSP)](https://microsoft.github.io/language-server-protocol/overviews/lsp/overview/) with MVP functions written in [Go](https://go.dev/) with the standard library.
+
+## Architecture
+
+The project is organized into several key packages, each responsible for different aspects of the Language Server Protocol (LSP) implementation.
+
+### `/compiler`
+
+Manages the internal state (open, update, and retrieve information about documents) and smart analysis functionality of the documents handled by the LSP.
+
+Supported functions:
+
+- Hover action
+- Goto definition
+- Autocompletion
+- Diagnostics
+
+_This is just a proof of concept, a lot of the functionality is limited and NOT respresentative of a full-fledged LSP._
+
+### `/lsp`
+
+Defines the structures and types required to implement the LSP. This includes requests, responses, and the capabilities of the server.
+
+### `/rpc`
+
+Handles the encoding and decoding of messages sent between the LSP client and server through [Remote Procedure Calls](https://en.wikipedia.org/wiki/Remote_procedure_call) (RPCs).
+
+### `/logs`
+
+This folder is generated after the LSP is running. It will contain all relevant logs regarding messages, actions and responses taken throughout the lifecycle of the program.
 
 ## Getting started
 
@@ -35,7 +64,3 @@ A [Language Server Protocol (LSP)](https://microsoft.github.io/language-server-p
 4. Open a markdown file using Neovim. (e.g. `nvim README.md`)
 
 _Note: logs are generated into `/logs/`_
-
-## Good to know
-
-- Messages are decoded according to the [LSP specification](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification) (payloads in [JSON-RPC](https://www.jsonrpc.org/specification)) and logged into a file within `/logs/`.
