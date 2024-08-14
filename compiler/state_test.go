@@ -64,7 +64,7 @@ func TestOpenDocument(t *testing.T) {
 			newURI:      lsp.DocumentURI("file:///example.go"),
 			newText:     "package main\n\nfunc main() { println(\"Hello, World!\") }\n",
 			wantLength:  1,
-			wantText:    "package main\n\nfunc main() {}\n", // No change expected
+			wantText:    "package main\n\nfunc main() {}\n", // No change want
 			wantErr:     errors.New("document was already opened"),
 		},
 	}
@@ -241,6 +241,185 @@ func TestDefinition(t *testing.T) {
 				if got.Result.URI != tc.wantURI {
 					t.Errorf("Definition got uri = %v, want %v", got.Result.URI, tc.wantURI)
 				}
+			}
+		})
+	}
+}
+
+func TestTextDocumentCodeAction(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name      string
+		documents map[lsp.DocumentURI]string
+		id        int
+		uri       lsp.DocumentURI
+		want      lsp.TextDocumentCodeActionResponse
+		wantError error
+	}{
+		{
+			name: "Document contains 'VS Code'",
+			documents: map[lsp.DocumentURI]string{
+				"file:///example": "This is a line with VS Code",
+			},
+			id:  1,
+			uri: "file:///example",
+			want: lsp.TextDocumentCodeActionResponse{
+				Response: lsp.Response{
+					RPC: "2.0",
+					ID:  1,
+				},
+				Result: []lsp.CodeAction{
+					{
+						Title: "Replace VS C*de with a superior editor",
+						Edit: &lsp.WorkspaceEdit{
+							Changes: map[string][]lsp.TextEdit{
+								"file:///example": {
+									{
+										Range:   LineRange(0, 23, 30), // Adjust based on actual position
+										NewText: "Neovim",
+									},
+								},
+							},
+						},
+					},
+					{
+						Title: "Censor to VS C*de",
+						Edit: &lsp.WorkspaceEdit{
+							Changes: map[string][]lsp.TextEdit{
+								"file:///example": {
+									{
+										Range:   LineRange(0, 23, 30), // Adjust based on actual position
+										NewText: "VS C*de",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantError: nil,
+		},
+		{
+			name: "Document does not contain 'VS Code'",
+			documents: map[lsp.DocumentURI]string{
+				"file:///example": "No special text here",
+			},
+			id:  1,
+			uri: "file:///example",
+			want: lsp.TextDocumentCodeActionResponse{
+				Response: lsp.Response{
+					RPC: "2.0",
+					ID:  1,
+				},
+				Result: []lsp.CodeAction{}, // No actions should be generated
+			},
+			wantError: nil,
+		},
+		{
+			name:      "Document not found",
+			documents: map[lsp.DocumentURI]string{},
+			id:        1,
+			uri:       "file:///missing",
+			want:      lsp.TextDocumentCodeActionResponse{},
+			wantError: ErrDocumentNotFound,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			state := &State{documents: tc.documents}
+			response, err := state.TextDocumentCodeAction(tc.id, tc.uri)
+			if err != nil && err != tc.wantError {
+				t.Errorf("want error %v, got %v", tc.wantError, err)
+			}
+
+			if err == nil && len(response.Result) == 1 && response.Result[0].Title != tc.want.Result[0].Title {
+				t.Errorf("want Title %+v, got %+v", tc.want.Result, response.Result)
+			}
+		})
+	}
+}
+
+func TestLineRange(t *testing.T) {
+	testCases := []struct {
+		name   string
+		line   int
+		start  int
+		end    int
+		expect lsp.Range
+	}{
+		{
+			name:  "Standard case",
+			line:  1,
+			start: 2,
+			end:   5,
+			expect: lsp.Range{
+				Start: lsp.Position{
+					Line:      1,
+					Character: 2,
+				},
+				End: lsp.Position{
+					Line:      1,
+					Character: 5,
+				},
+			},
+		},
+		{
+			name:  "Start and end are the same",
+			line:  2,
+			start: 3,
+			end:   3,
+			expect: lsp.Range{
+				Start: lsp.Position{
+					Line:      2,
+					Character: 3,
+				},
+				End: lsp.Position{
+					Line:      2,
+					Character: 3,
+				},
+			},
+		},
+		{
+			name:  "Zero values",
+			line:  0,
+			start: 0,
+			end:   0,
+			expect: lsp.Range{
+				Start: lsp.Position{
+					Line:      0,
+					Character: 0,
+				},
+				End: lsp.Position{
+					Line:      0,
+					Character: 0,
+				},
+			},
+		},
+		{
+			name:  "Negative values",
+			line:  -1,
+			start: -2,
+			end:   -1,
+			expect: lsp.Range{
+				Start: lsp.Position{
+					Line:      -1,
+					Character: -2,
+				},
+				End: lsp.Position{
+					Line:      -1,
+					Character: -1,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := LineRange(tc.line, tc.start, tc.end)
+			if result != tc.expect {
+				t.Errorf("want %+v, got %+v", tc.expect, result)
 			}
 		})
 	}

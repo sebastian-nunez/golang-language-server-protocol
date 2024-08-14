@@ -14,7 +14,7 @@ Supported functions:
 
 - Hover action (press `shift + k` on Neovim)
 - Goto definition (press `g -> d` on Neovim)
-- Autocompletion (press `SPACE -> c -> a` on Neovim)
+- Autocompletion (press `SPACE -> c -> a` on Neovim, must be over "VS Code" text)
 - Diagnostics
 
 _This is just a proof of concept, a lot of the functionality is limited and NOT respresentative of a full-fledged LSP._

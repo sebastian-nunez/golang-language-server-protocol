@@ -4,7 +4,7 @@ func NewTextDocumentDefinitionResponse(id int, uri DocumentURI, rang Range, cont
 	return &TextDocumentDefinitionResponse{
 		Response: Response{
 			RPC: "2.0",
-			ID:  &id,
+			ID:  id,
 		},
 		Result: &Location{
 			URI:   uri,

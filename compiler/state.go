@@ -3,6 +3,7 @@ package compiler
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/sebastian-nunez/golang-language-server-protocol/lsp"
 )
@@ -68,4 +69,66 @@ func (s *State) Definition(uri lsp.DocumentURI, id int, position lsp.Position) (
 		End:   lsp.Position{Line: position.Line - 1, Character: 0},
 	}
 	return lsp.NewTextDocumentDefinitionResponse(id, uri, r, contents), nil
+}
+
+func (s *State) TextDocumentCodeAction(id int, uri lsp.DocumentURI) (lsp.TextDocumentCodeActionResponse, error) {
+	text, ok := s.documents[uri]
+	if !ok {
+		return lsp.TextDocumentCodeActionResponse{}, ErrDocumentNotFound
+	}
+
+	actions := []lsp.CodeAction{}
+	for row, line := range strings.Split(text, "\n") {
+		idx := strings.Index(line, "VS Code")
+		if idx >= 0 {
+			replaceChange := map[string][]lsp.TextEdit{}
+			replaceChange[string(uri)] = []lsp.TextEdit{
+				{
+					Range:   LineRange(row, idx, idx+len("VS Code")),
+					NewText: "Neovim",
+				},
+			}
+
+			actions = append(actions, lsp.CodeAction{
+				Title: "Replace VS C*de with a superior editor",
+				Edit:  &lsp.WorkspaceEdit{Changes: replaceChange},
+			})
+
+			censorChange := map[string][]lsp.TextEdit{}
+			censorChange[string(uri)] = []lsp.TextEdit{
+				{
+					Range:   LineRange(row, idx, idx+len("VS Code")),
+					NewText: "VS C*de",
+				},
+			}
+
+			actions = append(actions, lsp.CodeAction{
+				Title: "Censor to VS C*de",
+				Edit:  &lsp.WorkspaceEdit{Changes: censorChange},
+			})
+		}
+	}
+
+	response := lsp.TextDocumentCodeActionResponse{
+		Response: lsp.Response{
+			RPC: "2.0",
+			ID:  id,
+		},
+		Result: actions,
+	}
+
+	return response, nil
+}
+
+func LineRange(line, start, end int) lsp.Range {
+	return lsp.Range{
+		Start: lsp.Position{
+			Line:      line,
+			Character: start,
+		},
+		End: lsp.Position{
+			Line:      line,
+			Character: end,
+		},
+	}
 }

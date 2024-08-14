@@ -123,6 +123,21 @@ func handleMessage(logger *log.Logger, state *compiler.State, writer io.Writer, 
 
 		writeResponse(writer, response)
 		logger.Println("Sent definition response")
+
+	case "textDocument/codeAction":
+		var request lsp.TextDocumentDefinitionRequest
+		if err := json.Unmarshal(content, &request); err != nil {
+			logger.Printf("Error unmarshalling textDocument/codeAction: %v", err)
+			return
+		}
+
+		response, err := state.TextDocumentCodeAction(request.ID, request.Params.TextDocument.URI)
+		if err != nil {
+			logger.Printf("Error getting codeAction response: %v", err)
+		}
+
+		writeResponse(writer, response)
+		logger.Println("Sent codeAction response")
 	default:
 		logger.Printf("Received message: method=%v, content=%v", method, string(content))
 	}

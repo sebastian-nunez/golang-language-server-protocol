@@ -4,7 +4,7 @@ func NewTextDocumentHoverResponse(id int, contents MarkedString) *TextDocumentHo
 	return &TextDocumentHoverResponse{
 		Response: Response{
 			RPC: "2.0",
-			ID:  &id,
+			ID:  id,
 		},
 		Result: &HoverResult{
 			Contents: contents,

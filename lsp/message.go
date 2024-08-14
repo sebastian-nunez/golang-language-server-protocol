@@ -11,7 +11,7 @@ type Request struct {
 // Response is the structure that all LSP responses should follow.
 type Response struct {
 	RPC string `json:"jsonrpc"`
-	ID  *int   `json:"id,omitempty"` // Can be nil.
+	ID  int    `json:"id"` // Can be nil.
 	// Result and errors will be specified within each of the response types.
 }
 
