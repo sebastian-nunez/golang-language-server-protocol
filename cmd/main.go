@@ -95,8 +95,11 @@ func handleMessage(logger *log.Logger, state *compiler.State, writer io.Writer, 
 			request.Params.Position.Line,
 		)
 
-		// TODO(sebastian-nunez): Implement hover response logic
-		response := lsp.NewTextDocumentHoverResponse(request.ID, "Hover response")
+		response, err := state.Hover(request.Params.TextDocument.URI, request.ID, request.Params.Position)
+		if err != nil {
+			logger.Printf("Error getting hover response: %v", err)
+		}
+
 		writeResponse(writer, response)
 		logger.Println("Sent hover response")
 	default:

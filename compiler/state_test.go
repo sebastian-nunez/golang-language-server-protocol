@@ -24,11 +24,11 @@ func TestNewState(t *testing.T) {
 			if state == nil {
 				t.Errorf("NewState() returned nil")
 			}
-			if state.Documents == nil {
+			if state.documents == nil {
 				t.Errorf("NewState() Documents map is nil")
 			}
-			if len(state.Documents) != 0 {
-				t.Errorf("NewState() Documents map should be empty, got %d", len(state.Documents))
+			if len(state.documents) != 0 {
+				t.Errorf("NewState() Documents map should be empty, got %d", len(state.documents))
 			}
 		})
 	}
@@ -73,7 +73,7 @@ func TestOpenDocument(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			state := NewState()
 			if tc.initialURI != "" {
-				state.Documents[tc.initialURI] = tc.initialText
+				state.documents[tc.initialURI] = tc.initialText
 			}
 			err := state.OpenDocument(tc.newURI, tc.newText)
 
@@ -81,11 +81,11 @@ func TestOpenDocument(t *testing.T) {
 				t.Errorf("OpenDocument got error = %v, want %v", err, tc.wantErr)
 			}
 
-			if gotLength := len(state.Documents); gotLength != tc.wantLength {
+			if gotLength := len(state.documents); gotLength != tc.wantLength {
 				t.Errorf("OpenDocument got length = %v, want %v", gotLength, tc.wantLength)
 			}
 
-			if gotText := state.Documents[tc.newURI]; gotText != tc.wantText {
+			if gotText := state.documents[tc.newURI]; gotText != tc.wantText {
 				t.Errorf("OpenDocument got text = %v, want %v", gotText, tc.wantText)
 			}
 		})
@@ -127,7 +127,7 @@ func TestUpdateDocument(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			state := NewState()
 			if tc.initialURI != "" {
-				state.Documents[tc.initialURI] = tc.initialText
+				state.documents[tc.initialURI] = tc.initialText
 			}
 			err := state.UpdateDocument(tc.updateURI, tc.updateText)
 
@@ -135,7 +135,7 @@ func TestUpdateDocument(t *testing.T) {
 				t.Errorf("UpdateDocument got error = %v, want %v", err, tc.wantErr)
 			}
 
-			if gotText := state.Documents[tc.updateURI]; gotText != tc.wantText {
+			if gotText := state.documents[tc.updateURI]; gotText != tc.wantText {
 				t.Errorf("UpdateDocument got text = %v, want %v", gotText, tc.wantText)
 			}
 		})
