@@ -76,7 +76,7 @@ func TestOpenDocument(t *testing.T) {
 			if tc.initialURI != "" {
 				state.documents[tc.initialURI] = tc.initialText
 			}
-			err := state.OpenDocument(tc.newURI, tc.newText)
+			_, err := state.OpenDocument(tc.newURI, tc.newText)
 
 			if err != nil && err.Error() != tc.wantErr.Error() {
 				t.Errorf("OpenDocument got error = %v, want %v", err, tc.wantErr)
@@ -130,7 +130,7 @@ func TestUpdateDocument(t *testing.T) {
 			if tc.initialURI != "" {
 				state.documents[tc.initialURI] = tc.initialText
 			}
-			err := state.UpdateDocument(tc.updateURI, tc.updateText)
+			_, err := state.UpdateDocument(tc.updateURI, tc.updateText)
 
 			if err != nil && err.Error() != tc.wantErr.Error() {
 				t.Errorf("UpdateDocument got error = %v, want %v", err, tc.wantErr)

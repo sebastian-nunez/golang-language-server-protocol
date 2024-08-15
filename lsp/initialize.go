@@ -2,7 +2,7 @@ package lsp
 
 func NewInitializeResponse(id int) InitializeResponse {
 	version := "0.0.0-alpha.0"
-	textDocumentSync := TextDocumentSyncKind(1)
+	textDocumentSync := TextDocumentSyncKind(TextDocumentSyncFull)
 	hoverProvider := true
 	definitionProvider := true
 	codeActionProvider := true
@@ -58,6 +58,12 @@ type ServerCapabilities struct {
 // 1: Full
 // 2: Incremental
 type TextDocumentSyncKind int
+
+const (
+	TextDocumentSyncNone        TextDocumentSyncKind = 0
+	TextDocumentSyncFull        TextDocumentSyncKind = 1
+	TextDocumentSyncIncremental TextDocumentSyncKind = 2
+)
 
 type ServerInfo struct {
 	Name    string  `json:"name"`

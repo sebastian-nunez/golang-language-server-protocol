@@ -24,22 +24,22 @@ func NewState() *State {
 	}
 }
 
-func (s *State) OpenDocument(uri lsp.DocumentURI, text string) error {
+func (s *State) OpenDocument(uri lsp.DocumentURI, text string) ([]lsp.Diagnostic, error) {
 	_, ok := s.documents[uri]
 	if ok {
-		return ErrDocumentAlreadyOpened
+		return nil, ErrDocumentAlreadyOpened
 	}
 	s.documents[uri] = text
-	return nil
+	return getDiagnosticsForFile(text), nil
 }
 
-func (s *State) UpdateDocument(uri lsp.DocumentURI, text string) error {
+func (s *State) UpdateDocument(uri lsp.DocumentURI, text string) ([]lsp.Diagnostic, error) {
 	_, ok := s.documents[uri]
 	if !ok {
-		return ErrDocumentNotFound
+		return nil, ErrDocumentNotFound
 	}
 	s.documents[uri] = text
-	return nil
+	return getDiagnosticsForFile(text), nil
 }
 
 func (s *State) Hover(uri lsp.DocumentURI, id int, position lsp.Position) (*lsp.TextDocumentHoverResponse, error) {
@@ -151,4 +151,36 @@ func (s *State) TextDocumentCompletion(id int, uri lsp.DocumentURI) *lsp.TextDoc
 		Result: items,
 	}
 	return response
+}
+
+func stringToPtr(s string) *string {
+	return &s
+}
+
+func getDiagnosticsForFile(text string) []lsp.Diagnostic {
+	diagnostics := []lsp.Diagnostic{}
+	for row, line := range strings.Split(text, "\n") {
+		if strings.Contains(line, "VS Code") {
+			idx := strings.Index(line, "VS Code")
+			diagnostics = append(diagnostics, lsp.Diagnostic{
+				Range:    LineRange(row, idx, idx+len("VS Code")),
+				Severity: lsp.DiagnosticSeverityError,
+				Source:   stringToPtr("Common knowledge"),
+				Message:  "Please make sure we use good language!!",
+			})
+		}
+
+		if strings.Contains(line, "Neovim") {
+			idx := strings.Index(line, "Neovim")
+			diagnostics = append(diagnostics, lsp.Diagnostic{
+				Range:    LineRange(row, idx, idx+len("Neovim")),
+				Severity: lsp.DiagnosticSeverityHint,
+				Source:   stringToPtr("Common Sense"),
+				Message:  "Great choice ;)",
+			})
+
+		}
+	}
+
+	return diagnostics
 }

@@ -10,13 +10,13 @@ The project is organized into several key packages, each responsible for differe
 
 Manages the internal state (open, update, and retrieve information about documents) and smart analysis functionality of the documents handled by the LSP.
 
-Supported functions:
+Supported functions (using Neovim):
 
-- [x] Hover action (press `shift + k` in Neovim)
-- [x] Goto definition (press `g -> d` in Neovim)
-- [x] Code actions (press `SPACE -> c -> a` in Neovim, must be over "VS Code" text)
-- [x] Autocompletion (begin typing `Custom completion` in Neovim `insert mode (i)`)
-- [ ] Diagnostics
+- [x] Hover action (press `shift + k`)
+- [x] Goto definition (press `g -> d`)
+- [x] Code actions (press `SPACE -> c -> a`, must be over "VS Code" text)
+- [x] Autocompletion (begin typing `Custom completion` in `insert mode (i)`)
+- [x] Diagnostics (open file with the text `VS Code` and `Neovim` somewhere inside)
 
 _This is just a proof of concept, a lot of the functionality is limited and NOT respresentative of a full-fledged LSP._
 

@@ -65,10 +65,21 @@ func handleMessage(logger *log.Logger, state *compiler.State, writer io.Writer, 
 		}
 
 		logger.Printf("Opened text document: URI=%v", request.Params.TextDocument.URI)
-		err := state.OpenDocument(request.Params.TextDocument.URI, request.Params.TextDocument.Text)
+		diagnostics, err := state.OpenDocument(request.Params.TextDocument.URI, request.Params.TextDocument.Text)
 		if err != nil {
 			logger.Printf("Error opening document: %v", err)
 		}
+
+		writeResponse(writer, lsp.PublishDiagnosticsNotification{
+			Notification: lsp.Notification{
+				RPC:    "2.0",
+				Method: "textDocument/publishDiagnostics",
+			},
+			Params: lsp.PublishDiagnosticsParams{
+				URI:         request.Params.TextDocument.URI,
+				Diagnostics: diagnostics,
+			},
+		})
 	case "textDocument/didChange":
 		var request lsp.TextDocumentDidChangeNotification
 		if err := json.Unmarshal(content, &request); err != nil {
@@ -78,10 +89,21 @@ func handleMessage(logger *log.Logger, state *compiler.State, writer io.Writer, 
 
 		for _, change := range request.Params.ContentChanges {
 			logger.Printf("Changed text document: URI=%v", request.Params.TextDocument.URI)
-			err := state.UpdateDocument(request.Params.TextDocument.URI, change.Text)
+			diagnostics, err := state.UpdateDocument(request.Params.TextDocument.URI, change.Text)
 			if err != nil {
 				logger.Printf("Error updating document: %v", err)
 			}
+
+			writeResponse(writer, lsp.PublishDiagnosticsNotification{
+				Notification: lsp.Notification{
+					RPC:    "2.0",
+					Method: "textDocument/publishDiagnostics",
+				},
+				Params: lsp.PublishDiagnosticsParams{
+					URI:         request.Params.TextDocument.URI,
+					Diagnostics: diagnostics,
+				},
+			})
 		}
 	case "textDocument/hover":
 		var request lsp.TextDocumentHoverRequest
@@ -145,10 +167,7 @@ func handleMessage(logger *log.Logger, state *compiler.State, writer io.Writer, 
 			return
 		}
 
-		response, err := state.TextDocumentCompletion(request.ID, request.Params.TextDocument.URI)
-		if err != nil {
-			logger.Printf("Error getting completion response: %v", err)
-		}
+		response := state.TextDocumentCompletion(request.ID, request.Params.TextDocument.URI)
 
 		writeResponse(writer, response)
 		logger.Println("Sent completion response")
